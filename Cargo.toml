@@ -1,0 +1,9 @@
+[package]
+name = "legeo"
+version = "0.1.0"
+authors = ["Pirmin Kalberer <pka@sourcepole.ch>"]
+
+[dependencies]
+actix = "0.7"
+futures = "0.1"
+tokio = "0.1.7"
