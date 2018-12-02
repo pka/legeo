@@ -1,7 +1,9 @@
 extern crate actix;
 extern crate futures;
 extern crate tokio;
+extern crate url;
 
+pub mod file;
 pub mod null;
 pub mod tilesink;
 

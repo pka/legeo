@@ -7,3 +7,4 @@ authors = ["Pirmin Kalberer <pka@sourcepole.ch>"]
 actix = "0.7"
 futures = "0.1"
 tokio = "0.1.7"
+url = "1.7.2"
