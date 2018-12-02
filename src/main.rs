@@ -16,7 +16,7 @@ fn main() {
     // start system, this is required step
     System::run(|| {
         // start new actor
-        let addr = NullSink { count: 10 }.start();
+        let addr = NullSink {}.start();
 
         // send message and get future for result
         let res = addr.send(PutTile {
@@ -28,8 +28,8 @@ fn main() {
 
         // handle() returns tokio handle
         tokio::spawn(
-            res.map(|res| {
-                println!("RESULT: {}", res == 20);
+            res.map(|_res| {
+                println!("PutTile to NullSink successful");
 
                 // stop system and exit
                 System::current().stop();

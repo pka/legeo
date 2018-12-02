@@ -91,6 +91,8 @@ pub struct PutTile {
     pub data: Vec<u8>,
 }
 
+pub type PutTileResult = std::io::Result<()>;
+
 impl Message for PutTile {
-    type Result = usize;
+    type Result = PutTileResult;
 }

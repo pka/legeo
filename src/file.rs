@@ -57,14 +57,14 @@ impl Actor for FileSink {
 }
 
 impl Handler<PutTile> for FileSink {
-    type Result = usize;
+    type Result = PutTileResult;
 
     fn handle(&mut self, msg: PutTile, _: &mut Context<Self>) -> Self::Result {
         let path = self.get_path(msg.z, msg.x, msg.y, &self.filetype);
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        let mut f = File::create(path).unwrap();
-        f.write_all(&msg.data).unwrap();
-        0
+        fs::create_dir_all(path.parent().unwrap())?;
+        let mut f = File::create(path)?;
+        f.write_all(&msg.data)?;
+        Ok(())
     }
 }
 
@@ -77,13 +77,14 @@ fn test_put_tile() {
     System::run(move || {
         let addr = Arbiter::start(move |_| actor);
         let tile_data = b"3/7/7";
-        addr.send(PutTile {
-            z: 3,
-            x: 7,
-            y: 7,
-            data: tile_data.to_vec(),
-        }).wait()
-        .unwrap();
+        let _ = addr
+            .send(PutTile {
+                z: 3,
+                x: 7,
+                y: 7,
+                data: tile_data.to_vec(),
+            }).wait()
+            .unwrap();
         let mut file = File::open("/tmp/legeo/3/7/7.txt").unwrap();
         let mut content = [0; 5];
         file.read(&mut content).unwrap();
@@ -101,13 +102,14 @@ fn test_put_tile_safe() {
     System::run(move || {
         let addr = Arbiter::start(move |_| actor);
         let tile_data = b"3/7/7";
-        addr.send(PutTile {
-            z: 3,
-            x: 7,
-            y: 7,
-            data: tile_data.to_vec(),
-        }).wait()
-        .unwrap();
+        let _ = addr
+            .send(PutTile {
+                z: 3,
+                x: 7,
+                y: 7,
+                data: tile_data.to_vec(),
+            }).wait()
+            .unwrap();
         let mut file = File::open("/tmp/legeo/3/000/007/000/007.txt").unwrap();
         let mut content = [0; 5];
         file.read(&mut content).unwrap();

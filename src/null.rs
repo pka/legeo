@@ -4,9 +4,7 @@ use actix::prelude::*;
 use tilesink::*;
 
 // Actor
-pub struct NullSink {
-    pub count: usize,
-}
+pub struct NullSink {}
 
 // Declare actor and its context
 impl Actor for NullSink {
@@ -15,11 +13,10 @@ impl Actor for NullSink {
 
 // Handler for `PutTile` message
 impl Handler<PutTile> for NullSink {
-    type Result = usize;
+    type Result = PutTileResult;
 
-    fn handle(&mut self, msg: PutTile, _: &mut Context<Self>) -> Self::Result {
-        self.count += msg.x;
-        self.count
+    fn handle(&mut self, _msg: PutTile, _: &mut Context<Self>) -> Self::Result {
+        Ok(())
     }
 }
 
