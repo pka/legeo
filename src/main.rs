@@ -6,6 +6,7 @@ extern crate url;
 pub mod file;
 pub mod null;
 pub mod tilesink;
+pub mod tilesource;
 
 use actix::prelude::*;
 use futures::Future;

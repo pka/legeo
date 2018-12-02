@@ -4,19 +4,21 @@ use actix::prelude::*;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fs::{self, File};
+use std::io::Read;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use tilesink::*;
+use tilesource::*;
 use url::{self, Url};
 
-pub struct FileSink {
+pub struct FileBackend {
     basepath: String,
     filetype: String,
     safe: bool,
 }
 
-impl FileSink {
-    /// Create FileSink with base path and format information from `uri`
+impl FileBackend {
+    /// Create FileBackend with base path and format information from `uri`
     pub fn new(uri: &str) -> Result<Self, url::ParseError> {
         let uri = Url::parse(uri)?;
         let basepath = uri.path().to_string();
@@ -26,7 +28,7 @@ impl FileSink {
             .unwrap_or(&Cow::from("png"))
             .to_string();
         let safe = params.get("safe").map_or(false, |v| v == "true");
-        Ok(FileSink {
+        Ok(FileBackend {
             basepath,
             filetype,
             safe,
@@ -52,11 +54,23 @@ impl FileSink {
     }
 }
 
-impl Actor for FileSink {
+impl Actor for FileBackend {
     type Context = Context<Self>;
 }
 
-impl Handler<PutTile> for FileSink {
+impl Handler<GetTile> for FileBackend {
+    type Result = GetTileResult;
+
+    fn handle(&mut self, msg: GetTile, _: &mut Context<Self>) -> Self::Result {
+        let path = self.get_path(msg.z, msg.x, msg.y, &self.filetype);
+        let mut file = File::open(path)?;
+        let mut content = Vec::new();
+        file.read_to_end(&mut content)?;
+        Ok(content)
+    }
+}
+
+impl Handler<PutTile> for FileBackend {
     type Result = PutTileResult;
 
     fn handle(&mut self, msg: PutTile, _: &mut Context<Self>) -> Self::Result {
@@ -69,11 +83,10 @@ impl Handler<PutTile> for FileSink {
 }
 
 #[test]
-fn test_put_tile() {
+fn test_tile() {
     use futures::Future;
-    use std::io::Read;
 
-    let actor = FileSink::new("file:///tmp/legeo?filetype=txt").unwrap();
+    let actor = FileBackend::new("file:///tmp/legeo?filetype=txt").unwrap();
     System::run(move || {
         let addr = Arbiter::start(move |_| actor);
         let tile_data = b"3/7/7";
@@ -89,16 +102,19 @@ fn test_put_tile() {
         let mut content = [0; 5];
         file.read(&mut content).unwrap();
         assert_eq!(&content, tile_data);
+
+        let tile = addr.send(GetTile { z: 3, x: 7, y: 7 }).wait().unwrap();
+        assert_eq!(&tile.unwrap(), tile_data);
+
         System::current().stop();
     });
 }
 
 #[test]
-fn test_put_tile_safe() {
+fn test_tile_safe() {
     use futures::Future;
-    use std::io::Read;
 
-    let actor = FileSink::new("file:///tmp/legeo?safe=true&filetype=txt").unwrap();
+    let actor = FileBackend::new("file:///tmp/legeo?safe=true&filetype=txt").unwrap();
     System::run(move || {
         let addr = Arbiter::start(move |_| actor);
         let tile_data = b"3/7/7";
@@ -114,6 +130,10 @@ fn test_put_tile_safe() {
         let mut content = [0; 5];
         file.read(&mut content).unwrap();
         assert_eq!(&content, tile_data);
+
+        let tile = addr.send(GetTile { z: 3, x: 7, y: 7 }).wait().unwrap();
+        assert_eq!(&tile.unwrap(), tile_data);
+
         System::current().stop();
     });
 }
