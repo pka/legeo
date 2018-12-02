@@ -2,12 +2,13 @@ extern crate actix;
 extern crate futures;
 extern crate tokio;
 
-mod null;
+pub mod null;
+pub mod tilesink;
 
 use actix::prelude::*;
 use futures::Future;
-use null::{NullSink, PutTile};
-
+use null::NullSink;
+use tilesink::PutTile;
 
 fn main() {
     // start system, this is required step
@@ -16,7 +17,12 @@ fn main() {
         let addr = NullSink { count: 10 }.start();
 
         // send message and get future for result
-        let res = addr.send(PutTile{ x: 10, y: 0, z: 0, data: Vec::new() });
+        let res = addr.send(PutTile {
+            x: 10,
+            y: 0,
+            z: 0,
+            data: Vec::new(),
+        });
 
         // handle() returns tokio handle
         tokio::spawn(
