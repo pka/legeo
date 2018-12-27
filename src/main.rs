@@ -1,17 +1,12 @@
-extern crate actix;
-extern crate futures;
-extern crate tokio;
-extern crate url;
-
 pub mod file;
 pub mod null;
 pub mod tilesink;
 pub mod tilesource;
 
-use actix::prelude::*;
+use crate::null::NullSink;
+use crate::tilesink::PutTile;
+use ::actix::prelude::*;
 use futures::Future;
-use null::NullSink;
-use tilesink::PutTile;
 
 fn main() {
     // start system, this is required step
@@ -34,7 +29,8 @@ fn main() {
 
                 // stop system and exit
                 System::current().stop();
-            }).map_err(|_| ()),
+            })
+            .map_err(|_| ()),
         );
     });
 }

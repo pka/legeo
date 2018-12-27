@@ -1,14 +1,14 @@
 //! Reads/writes tiles and grids from/to the filesystem.
 
-use actix::prelude::*;
+use crate::tilesink::*;
+use crate::tilesource::*;
+use ::actix::prelude::*;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fs::{self, File};
 use std::io::Read;
 use std::io::Write;
 use std::path::{Path, PathBuf};
-use tilesink::*;
-use tilesource::*;
 use url::{self, Url};
 
 pub struct FileBackend {
@@ -96,7 +96,8 @@ fn test_tile() {
                 x: 7,
                 y: 7,
                 data: tile_data.to_vec(),
-            }).wait()
+            })
+            .wait()
             .unwrap();
         let mut file = File::open("/tmp/legeo/3/7/7.txt").unwrap();
         let mut content = [0; 5];
@@ -124,7 +125,8 @@ fn test_tile_safe() {
                 x: 7,
                 y: 7,
                 data: tile_data.to_vec(),
-            }).wait()
+            })
+            .wait()
             .unwrap();
         let mut file = File::open("/tmp/legeo/3/000/007/000/007.txt").unwrap();
         let mut content = [0; 5];

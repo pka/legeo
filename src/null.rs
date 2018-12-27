@@ -1,7 +1,7 @@
 //! tilelive-null, A noop sink
 
-use actix::prelude::*;
-use tilesink::*;
+use crate::tilesink::*;
+use ::actix::prelude::*;
 
 // Actor
 pub struct NullSink {}
