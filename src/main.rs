@@ -1,36 +1,19 @@
 pub mod file;
+pub mod grid_iterator;
 pub mod null;
+pub mod operation;
 pub mod tilesink;
 pub mod tilesource;
 
-use crate::null::NullSink;
-use crate::tilesink::PutTile;
+use crate::operation::{tile_copy, TileInput, TileOutput};
 use ::actix::prelude::*;
-use futures::Future;
 
 fn main() {
-    // start system, this is required step
     System::run(|| {
-        // start new actor
-        let addr = NullSink {}.start();
+        let src = TileInput::from_uri("file:///tmp/legeo?filetype=txt".to_string());
+        let dst = TileOutput::from_uri("file:///tmp/legeoout?filetype=txt".to_string());
+        tile_copy(src, dst);
 
-        // send message and get future for result
-        let res = addr.send(PutTile {
-            x: 10,
-            y: 0,
-            z: 0,
-            data: Vec::new(),
-        });
-
-        // handle() returns tokio handle
-        tokio::spawn(
-            res.map(|_res| {
-                println!("PutTile to NullSink successful");
-
-                // stop system and exit
-                System::current().stop();
-            })
-            .map_err(|_| ()),
-        );
+        System::current().stop();
     });
 }

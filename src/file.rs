@@ -63,6 +63,7 @@ impl Handler<GetTile> for FileBackend {
 
     fn handle(&mut self, msg: GetTile, _: &mut Context<Self>) -> Self::Result {
         let path = self.get_path(msg.z, msg.x, msg.y, &self.filetype);
+        println!("GetTile {:?}", path);
         let mut file = File::open(path)?;
         let mut content = Vec::new();
         file.read_to_end(&mut content)?;
