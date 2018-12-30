@@ -7,6 +7,7 @@
 
 use crate::grid::ExtentInt;
 
+/// Level-by-level iterator
 pub struct GridIterator {
     z: u8,
     x: u32,
@@ -45,7 +46,8 @@ impl GridIterator {
 }
 
 impl Iterator for GridIterator {
-    type Item = (u8, u32, u32); // z, y, x
+    /// Current cell index `(z, y, x)`
+    type Item = (u8, u32, u32);
 
     fn next(&mut self) -> Option<Self::Item> {
         let current = (self.z, self.x, self.y);
@@ -65,4 +67,38 @@ impl Iterator for GridIterator {
         }
         Some(current)
     }
+}
+
+#[test]
+fn test_mercator_iter() {
+    use crate::grid::Grid;
+    let grid = Grid::web_mercator();
+    let tile_limits = grid.tile_limits(grid.extent.clone(), 0);
+    let griditer = GridIterator::new(0, 2, tile_limits);
+    let cells = griditer.collect::<Vec<_>>();
+    assert_eq!(
+        cells,
+        vec![
+            (0, 0, 0),
+            (1, 0, 0),
+            (1, 0, 1),
+            (1, 1, 0),
+            (1, 1, 1),
+            (2, 0, 0),
+            (2, 0, 1),
+            (2, 0, 2),
+            (2, 0, 3),
+            (2, 1, 0),
+            (2, 1, 1),
+            (2, 1, 2),
+            (2, 1, 3),
+            (2, 2, 0),
+            (2, 2, 1),
+            (2, 2, 2),
+            (2, 2, 3),
+            (2, 3, 0),
+            (2, 3, 1),
+            (2, 3, 2)
+        ]
+    );
 }

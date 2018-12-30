@@ -3,8 +3,11 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 //
 
+//!Tile grids
+
 use std::f64::consts;
 
+/// Geographic extent
 #[derive(PartialEq, Clone, Debug)]
 pub struct Extent {
     pub minx: f64,
@@ -25,12 +28,14 @@ pub struct ExtentInt {
 // Max grid cell numbers
 type CellIndex = (u32, u32);
 
+/// Grid origin
 #[derive(PartialEq, Debug)]
 pub enum Origin {
     TopLeft,
     BottomLeft, //TopRight, BottomRight
 }
 
+/// Grid units
 #[derive(PartialEq, Debug)]
 pub enum Unit {
     Meters,
@@ -38,14 +43,15 @@ pub enum Unit {
     Feet,
 }
 
+/// Tile grid
 // Credits: MapCache by Thomas Bonfort (http://mapserver.org/mapcache/)
 #[derive(Debug)]
 pub struct Grid {
-    /// The width and height of an individual tile, in pixels.
+    /// The width of an individual tile, in pixels.
     width: u16,
+    /// The height of an individual tile, in pixels.
     height: u16,
     /// The geographical extent covered by the grid, in ground units (e.g. meters, degrees, feet, etc.).
-    /// Must be specified as 4 floating point numbers ordered as minx, miny, maxx, maxy.
     /// The (minx,miny) point defines the origin of the grid, i.e. the pixel at the bottom left of the
     /// bottom-left most tile is always placed on the (minx,miny) geographical point.
     /// The (maxx,maxy) point is used to determine how many tiles there are for each zoom level.
