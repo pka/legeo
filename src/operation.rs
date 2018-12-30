@@ -1,8 +1,13 @@
+//
+// Copyright (c) Pirmin Kalberer. All rights reserved.
+// Licensed under the MIT License. See LICENSE file in the project root for full license information.
+//
+
 //! Tile operations
 
 use crate::file::*;
+use crate::grid::{extent_to_merc, Extent, Grid};
 use crate::grid_iterator::GridIterator;
-use crate::null::NullSink;
 use crate::tilesink::PutTile;
 use crate::tilesource::GetTile;
 use ::actix::prelude::*;
@@ -101,8 +106,8 @@ impl TileOutput {
     pub fn from_uri(uri: String) -> TileOutput {
         TileOutput { uri }
     }
-    fn start_actor(&self) -> Addr<NullSink> {
-        let actor = NullSink {}; // FIXME
+    fn start_actor(&self) -> Addr<FileBackend> {
+        let actor = FileBackend::new(&self.uri).unwrap(); // FIXME
         Arbiter::start(move |_| actor)
     }
 }
@@ -111,17 +116,30 @@ pub fn tile_copy(src: TileInput, dst: TileOutput) {
     let srcaddr = src.start_actor();
     let dstaddr = dst.start_actor();
 
-    let griditer = GridIterator::new();
+    let extent = Extent {
+        minx: -180.0,
+        miny: -90.0,
+        maxx: 180.0,
+        maxy: 90.0,
+    };
+    let minz = 0;
+    let maxz = 2;
+    let grid = Grid::web_mercator();
+    let tile_limits = grid.tile_limits(extent_to_merc(&extent), 0);
+    let griditer = GridIterator::new(minz, maxz, tile_limits);
     for (z, x, y) in griditer {
-        println!("x={}", x);
         //TODO: use ActorStream API
         let res = srcaddr
-            .send(GetTile { z, x, y })
+            .send(GetTile {
+                z: z as usize,
+                x: x as usize,
+                y: y as usize,
+            })
             .and_then(|tile| {
                 dstaddr.send(PutTile {
-                    x,
-                    y,
-                    z,
+                    z: z as usize,
+                    x: x as usize,
+                    y: y as usize,
                     data: tile.unwrap(),
                 })
             })

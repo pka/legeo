@@ -1,5 +1,8 @@
 pub mod file;
+pub mod grid;
 pub mod grid_iterator;
+#[cfg(test)]
+mod grid_test;
 pub mod null;
 pub mod operation;
 pub mod tilesink;
