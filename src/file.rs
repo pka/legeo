@@ -81,6 +81,7 @@ impl Handler<PutTile> for FileBackend {
 
     fn handle(&mut self, msg: PutTile, _: &mut Context<Self>) -> Self::Result {
         let path = self.get_path(msg.z, msg.x, msg.y, &self.filetype);
+        println!("PutTile {:?}", path);
         fs::create_dir_all(path.parent().unwrap())?;
         let mut f = File::create(path)?;
         f.write_all(&msg.data)?;

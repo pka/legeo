@@ -8,10 +8,12 @@
 use crate::file::*;
 use crate::grid::{extent_to_merc, Extent, Grid};
 use crate::grid_iterator::GridIterator;
+use crate::null::*;
 use crate::tilesink::PutTile;
 use crate::tilesource::GetTile;
 use ::actix::prelude::*;
 use futures::Future;
+use url::{self, Url};
 
 //  Methods from https://github.com/mapbox/tilelive/blob/master/lib/tilelive.js
 
@@ -91,10 +93,9 @@ impl TileInput {
     pub fn from_uri(uri: String) -> TileInput {
         TileInput { uri }
     }
-    fn start_actor(&self) -> Addr<FileBackend> {
-        // FIXME: return Addr<impl Actor + Handler<GetTile>>
+    fn start_actor(&self) -> Recipient<GetTile> {
         let actor = FileBackend::new(&self.uri).unwrap();
-        Arbiter::start(move |_| actor)
+        Arbiter::start(move |_| actor).recipient()
     }
 }
 
@@ -106,9 +107,14 @@ impl TileOutput {
     pub fn from_uri(uri: String) -> TileOutput {
         TileOutput { uri }
     }
-    fn start_actor(&self) -> Addr<FileBackend> {
-        let actor = FileBackend::new(&self.uri).unwrap(); // FIXME
-        Arbiter::start(move |_| actor)
+    fn start_actor(&self) -> Recipient<PutTile> {
+        let uri = self.uri.clone();
+        let url = Url::parse(&self.uri).unwrap();
+        match url.scheme() {
+            "file" => Arbiter::start(move |_| FileBackend::new(&uri).unwrap()).recipient(),
+            "null" => Arbiter::start(|_| NullSink {}).recipient(),
+            _ => Arbiter::start(|_| NullSink {}).recipient(),
+        }
     }
 }
 
@@ -128,7 +134,6 @@ pub fn tile_copy(src: TileInput, dst: TileOutput) {
     let tile_limits = grid.tile_limits(extent_to_merc(&extent), 0);
     let griditer = GridIterator::new(minz, maxz, tile_limits);
     for (z, x, y) in griditer {
-        //TODO: use ActorStream API
         let res = srcaddr
             .send(GetTile {
                 z: z as usize,
@@ -144,6 +149,6 @@ pub fn tile_copy(src: TileInput, dst: TileOutput) {
                 })
             })
             .map_err(|err| println!("{:?}", err));
-        println!("res={:?}", res.wait()); // FIXME: without wait() tiles are skipped!?
+        let _ = res.wait();
     }
 }
