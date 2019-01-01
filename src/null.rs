@@ -3,13 +3,19 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 //
 
-//! tilelive-null, A noop sink
+//! Noop sink
 
-use crate::tilesink::*;
+use crate::message::{PutTile, PutTileResult};
+use crate::tilesink::Tilesink;
 use ::actix::prelude::*;
 
-// Actor
 pub struct NullSink {}
+
+impl Tilesink for NullSink {
+    fn put_tile(&self, _z: u8, _x: u32, _y: u32, _data: Vec<u8>) -> std::io::Result<()> {
+        Ok(())
+    }
+}
 
 // Declare actor and its context
 impl Actor for NullSink {

@@ -3,9 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 //
 
-//! tilelive Tilesink messages and traits
-
-use actix::Message;
+//! Tilesink trait API
 
 //  https://github.com/mapbox/tilelive/blob/master/API.md
 //
@@ -87,17 +85,9 @@ use actix::Message;
 //     // Identical to .putTile(), but grid is a JS hash containing the grid.
 // };
 
-/// Stores a tile into the data store. Parameters are in XYZ format.
-/// `tile` must contain the compressed image.
-pub struct PutTile {
-    pub z: usize,
-    pub x: usize,
-    pub y: usize,
-    pub data: Vec<u8>,
-}
-
-pub type PutTileResult = std::io::Result<()>;
-
-impl Message for PutTile {
-    type Result = PutTileResult;
+/// Map tile destination
+pub trait Tilesink {
+    /// Stores a tile into the data store. Parameters are in XYZ format.
+    /// `tile` must contain the compressed image.
+    fn put_tile(&self, z: u8, x: u32, y: u32, data: Vec<u8>) -> std::io::Result<()>;
 }

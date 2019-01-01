@@ -5,8 +5,9 @@
 
 //! Reads/writes tiles and grids from/to the filesystem.
 
-use crate::tilesink::*;
-use crate::tilesource::*;
+use crate::message::{GetTile, GetTileResult, PutTile, PutTileResult};
+use crate::tilesink::Tilesink;
+use crate::tilesource::Tilesource;
 use ::actix::prelude::*;
 use std::borrow::Cow;
 use std::collections::HashMap;
@@ -40,7 +41,7 @@ impl FileBackend {
         })
     }
 
-    fn get_path(&self, z: usize, x: usize, y: usize, ext: &str) -> PathBuf {
+    fn get_path(&self, z: u8, x: u32, y: u32, ext: &str) -> PathBuf {
         let mut path = if self.safe {
             Path::new(&self.basepath)
                 .join(z.to_string())
@@ -59,15 +60,9 @@ impl FileBackend {
     }
 }
 
-impl Actor for FileBackend {
-    type Context = Context<Self>;
-}
-
-impl Handler<GetTile> for FileBackend {
-    type Result = GetTileResult;
-
-    fn handle(&mut self, msg: GetTile, _: &mut Context<Self>) -> Self::Result {
-        let path = self.get_path(msg.z, msg.x, msg.y, &self.filetype);
+impl Tilesource for FileBackend {
+    fn get_tile(&self, z: u8, x: u32, y: u32) -> std::io::Result<Vec<u8>> {
+        let path = self.get_path(z, x, y, &self.filetype);
         println!("GetTile {:?}", path);
         let mut file = File::open(path)?;
         let mut content = Vec::new();
@@ -76,73 +71,61 @@ impl Handler<GetTile> for FileBackend {
     }
 }
 
+impl Tilesink for FileBackend {
+    fn put_tile(&self, z: u8, x: u32, y: u32, data: Vec<u8>) -> std::io::Result<()> {
+        let path = self.get_path(z, x, y, &self.filetype);
+        println!("PutTile {:?}", path);
+        fs::create_dir_all(path.parent().unwrap())?;
+        let mut f = File::create(path)?;
+        f.write_all(&data)?;
+        Ok(())
+    }
+}
+
+impl Actor for FileBackend {
+    type Context = Context<Self>;
+}
+
+impl Handler<GetTile> for FileBackend {
+    type Result = GetTileResult;
+
+    fn handle(&mut self, msg: GetTile, _: &mut Context<Self>) -> Self::Result {
+        self.get_tile(msg.z, msg.x, msg.y)
+    }
+}
+
 impl Handler<PutTile> for FileBackend {
     type Result = PutTileResult;
 
     fn handle(&mut self, msg: PutTile, _: &mut Context<Self>) -> Self::Result {
-        let path = self.get_path(msg.z, msg.x, msg.y, &self.filetype);
-        println!("PutTile {:?}", path);
-        fs::create_dir_all(path.parent().unwrap())?;
-        let mut f = File::create(path)?;
-        f.write_all(&msg.data)?;
-        Ok(())
+        self.put_tile(msg.z, msg.x, msg.y, msg.data)
     }
 }
 
 #[test]
 fn test_tile() {
-    use futures::Future;
+    let backend = FileBackend::new("file:///tmp/legeo?filetype=txt").unwrap();
+    let tile_data = b"3/7/7";
+    let _ = backend.put_tile(3, 7, 7, tile_data.to_vec());
+    let mut file = File::open("/tmp/legeo/3/7/7.txt").unwrap();
+    let mut content = [0; 5];
+    file.read(&mut content).unwrap();
+    assert_eq!(&content, tile_data);
 
-    let actor = FileBackend::new("file:///tmp/legeo?filetype=txt").unwrap();
-    System::run(move || {
-        let addr = Arbiter::start(move |_| actor);
-        let tile_data = b"3/7/7";
-        let _ = addr
-            .send(PutTile {
-                z: 3,
-                x: 7,
-                y: 7,
-                data: tile_data.to_vec(),
-            })
-            .wait()
-            .unwrap();
-        let mut file = File::open("/tmp/legeo/3/7/7.txt").unwrap();
-        let mut content = [0; 5];
-        file.read(&mut content).unwrap();
-        assert_eq!(&content, tile_data);
-
-        let tile = addr.send(GetTile { z: 3, x: 7, y: 7 }).wait().unwrap();
-        assert_eq!(&tile.unwrap(), tile_data);
-
-        System::current().stop();
-    });
+    let tile = backend.get_tile(3, 7, 7).unwrap();
+    assert_eq!(&tile, tile_data);
 }
 
 #[test]
 fn test_tile_safe() {
-    use futures::Future;
+    let backend = FileBackend::new("file:///tmp/legeo?safe=true&filetype=txt").unwrap();
+    let tile_data = b"3/7/7";
+    let _ = backend.put_tile(3, 7, 7, tile_data.to_vec());
+    let mut file = File::open("/tmp/legeo/3/000/007/000/007.txt").unwrap();
+    let mut content = [0; 5];
+    file.read(&mut content).unwrap();
+    assert_eq!(&content, tile_data);
 
-    let actor = FileBackend::new("file:///tmp/legeo?safe=true&filetype=txt").unwrap();
-    System::run(move || {
-        let addr = Arbiter::start(move |_| actor);
-        let tile_data = b"3/7/7";
-        let _ = addr
-            .send(PutTile {
-                z: 3,
-                x: 7,
-                y: 7,
-                data: tile_data.to_vec(),
-            })
-            .wait()
-            .unwrap();
-        let mut file = File::open("/tmp/legeo/3/000/007/000/007.txt").unwrap();
-        let mut content = [0; 5];
-        file.read(&mut content).unwrap();
-        assert_eq!(&content, tile_data);
-
-        let tile = addr.send(GetTile { z: 3, x: 7, y: 7 }).wait().unwrap();
-        assert_eq!(&tile.unwrap(), tile_data);
-
-        System::current().stop();
-    });
+    let tile = backend.get_tile(3, 7, 7).unwrap();
+    assert_eq!(&tile, tile_data);
 }

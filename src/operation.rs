@@ -8,9 +8,8 @@
 use crate::file::*;
 use crate::grid::{extent_to_merc, Extent, Grid};
 use crate::grid_iterator::GridIterator;
+use crate::message::{GetTile, PutTile};
 use crate::null::*;
-use crate::tilesink::PutTile;
-use crate::tilesource::GetTile;
 use ::actix::prelude::*;
 use futures::Future;
 use url::{self, Url};
@@ -135,16 +134,12 @@ pub fn tile_copy(src: TileInput, dst: TileOutput) {
     let griditer = GridIterator::new(minz, maxz, tile_limits);
     for (z, x, y) in griditer {
         let res = srcaddr
-            .send(GetTile {
-                z: z as usize,
-                x: x as usize,
-                y: y as usize,
-            })
+            .send(GetTile { z, x, y })
             .and_then(|tile| {
                 dstaddr.send(PutTile {
-                    z: z as usize,
-                    x: x as usize,
-                    y: y as usize,
+                    z,
+                    x,
+                    y,
                     data: tile.unwrap(),
                 })
             })

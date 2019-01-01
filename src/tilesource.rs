@@ -3,9 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 //
 
-//! tilelive Tilesource messages and traits
-
-use actix::Message;
+//! Tilesource trait API
 
 //  https://github.com/mapbox/tilelive/blob/master/API.md
 //
@@ -56,14 +54,7 @@ use actix::Message;
 // };
 // ```
 
-pub struct GetTile {
-    pub z: usize,
-    pub x: usize,
-    pub y: usize,
-}
-
-pub type GetTileResult = std::io::Result<Vec<u8>>;
-
-impl Message for GetTile {
-    type Result = GetTileResult;
+/// Map tile source
+pub trait Tilesource {
+    fn get_tile(&self, z: u8, x: u32, y: u32) -> std::io::Result<Vec<u8>>;
 }
