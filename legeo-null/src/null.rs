@@ -5,9 +5,9 @@
 
 //! Noop sink
 
-use crate::message::{PutTile, PutTileResult};
-use crate::tilesink::Tilesink;
 use ::actix::prelude::*;
+use legeo::message::{PutTile, PutTileResult};
+use legeo::tilesink::Tilesink;
 
 pub struct NullSink {}
 

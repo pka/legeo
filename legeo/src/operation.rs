@@ -5,14 +5,11 @@
 
 //! Tile operations
 
-use crate::file::*;
-use crate::grid::{extent_to_merc, Extent, Grid};
-use crate::grid_iterator::GridIterator;
 use crate::message::{GetTile, PutTile};
-use crate::null::*;
 use ::actix::prelude::*;
 use futures::Future;
-use url::{self, Url};
+use legeo_xyz::grid::{extent_to_merc, Extent, Grid};
+use legeo_xyz::grid_iterator::GridIterator;
 
 //  Methods from https://github.com/mapbox/tilelive/blob/master/lib/tilelive.js
 
@@ -84,40 +81,15 @@ use url::{self, Url};
 // * **--part**=[number] - the specific part to copy
 // * **--retry**=[number] - number of retry attempts
 
-pub struct TileInput {
-    uri: String,
+pub trait TileInput {
+    fn start_actor(&self) -> Recipient<GetTile>;
 }
 
-impl TileInput {
-    pub fn from_uri(uri: String) -> TileInput {
-        TileInput { uri }
-    }
-    fn start_actor(&self) -> Recipient<GetTile> {
-        let actor = FileBackend::new(&self.uri).unwrap();
-        Arbiter::start(move |_| actor).recipient()
-    }
+pub trait TileOutput {
+    fn start_actor(&self) -> Recipient<PutTile>;
 }
 
-pub struct TileOutput {
-    uri: String,
-}
-
-impl TileOutput {
-    pub fn from_uri(uri: String) -> TileOutput {
-        TileOutput { uri }
-    }
-    fn start_actor(&self) -> Recipient<PutTile> {
-        let uri = self.uri.clone();
-        let url = Url::parse(&self.uri).unwrap();
-        match url.scheme() {
-            "file" => Arbiter::start(move |_| FileBackend::new(&uri).unwrap()).recipient(),
-            "null" => Arbiter::start(|_| NullSink {}).recipient(),
-            _ => Arbiter::start(|_| NullSink {}).recipient(),
-        }
-    }
-}
-
-pub fn tile_copy(src: TileInput, dst: TileOutput) {
+pub fn tile_copy(src: impl TileInput, dst: impl TileOutput) {
     let srcaddr = src.start_actor();
     let dstaddr = dst.start_actor();
 

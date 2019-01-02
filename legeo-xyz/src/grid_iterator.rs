@@ -141,11 +141,11 @@ fn test_mercator_iter() {
 }
 
 #[test]
-fn test_invalid_params() {
+fn test_bad_params() {
     use crate::grid::Grid;
     let grid = Grid::web_mercator();
 
-    // invalid tile_limits
+    // missing tile_limits
     let griditer = GridIterator::new(0, 10, Vec::new());
     let cells = griditer.collect::<Vec<_>>();
     assert_eq!(cells, vec![]);

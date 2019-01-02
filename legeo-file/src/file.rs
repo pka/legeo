@@ -5,10 +5,10 @@
 
 //! Reads/writes tiles and grids from/to the filesystem.
 
-use crate::message::{GetTile, GetTileResult, PutTile, PutTileResult};
-use crate::tilesink::Tilesink;
-use crate::tilesource::Tilesource;
 use ::actix::prelude::*;
+use legeo::message::{GetTile, GetTileResult, PutTile, PutTileResult};
+use legeo::tilesink::Tilesink;
+use legeo::tilesource::Tilesource;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fs::{self, File};
