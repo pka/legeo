@@ -9,6 +9,7 @@ use ::actix::prelude::*;
 use legeo::message::{GetTile, GetTileResult, PutTile, PutTileResult};
 use legeo::tilesink::Tilesink;
 use legeo::tilesource::Tilesource;
+use log::debug;
 use std::borrow::Cow;
 use std::collections::HashMap;
 use std::fs::{self, File};
@@ -63,7 +64,7 @@ impl FileBackend {
 impl Tilesource for FileBackend {
     fn get_tile(&self, z: u8, x: u32, y: u32) -> std::io::Result<Vec<u8>> {
         let path = self.get_path(z, x, y, &self.filetype);
-        println!("GetTile {:?}", path);
+        debug!("GetTile {:?}", path);
         let mut file = File::open(path)?;
         let mut content = Vec::new();
         file.read_to_end(&mut content)?;
@@ -74,7 +75,7 @@ impl Tilesource for FileBackend {
 impl Tilesink for FileBackend {
     fn put_tile(&self, z: u8, x: u32, y: u32, data: Vec<u8>) -> std::io::Result<()> {
         let path = self.get_path(z, x, y, &self.filetype);
-        println!("PutTile {:?}", path);
+        debug!("PutTile {:?}", path);
         fs::create_dir_all(path.parent().unwrap())?;
         let mut f = File::create(path)?;
         f.write_all(&data)?;

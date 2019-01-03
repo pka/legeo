@@ -10,3 +10,4 @@ legeo-xyz = { path = "../legeo-xyz" }
 actix = "0.7"
 futures = "0.1"
 tokio = "0.1.7"
+log = "0.4.0"

@@ -10,6 +10,7 @@ use ::actix::prelude::*;
 use futures::Future;
 use legeo_xyz::grid::{extent_to_merc, Extent, Grid};
 use legeo_xyz::grid_iterator::GridIterator;
+use log::error;
 
 //  Methods from https://github.com/mapbox/tilelive/blob/master/lib/tilelive.js
 
@@ -113,7 +114,7 @@ pub fn tile_copy(
                     data: tile.unwrap(),
                 })
             })
-            .map_err(|err| println!("{:?}", err));
+            .map_err(|err| error!("{:?}", err));
         let _ = res.wait();
     }
 }

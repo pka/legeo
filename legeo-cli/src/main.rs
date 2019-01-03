@@ -37,6 +37,8 @@ fn parse_extent(numlist: &str) -> Result<Extent, ParseFloatError> {
 
 #[derive(StructOpt)]
 struct Cli {
+    #[structopt(flatten)]
+    verbose: clap_verbosity_flag::Verbosity,
     /// WGS84 bounding box
     #[structopt(
         long,
@@ -60,6 +62,7 @@ struct Cli {
 // Call example: legeo 'file:///tmp/legeo?filetype=pbf' 'file:///tmp/legeoout?filetype=pbf'
 fn main() {
     let args = Cli::from_args();
+    let _ = args.verbose.setup_env_logger("legeo");
     System::run(|| {
         let src = registry::TileInput::from_uri(args.srcuri);
         let dst = registry::TileOutput::from_uri(args.dsturi);
