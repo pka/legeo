@@ -89,21 +89,19 @@ pub trait TileOutput {
     fn start_actor(&self) -> Recipient<PutTile>;
 }
 
-pub fn tile_copy(src: impl TileInput, dst: impl TileOutput) {
+pub fn tile_copy(
+    src: impl TileInput,
+    dst: impl TileOutput,
+    bounds: Extent,
+    minzoom: u8,
+    maxzoom: u8,
+) {
     let srcaddr = src.start_actor();
     let dstaddr = dst.start_actor();
 
-    let extent = Extent {
-        minx: -180.0,
-        miny: -90.0,
-        maxx: 180.0,
-        maxy: 90.0,
-    };
-    let minz = 0;
-    let maxz = 2;
     let grid = Grid::web_mercator();
-    let tile_limits = grid.tile_limits(extent_to_merc(&extent), 0);
-    let griditer = GridIterator::new(minz, maxz, tile_limits);
+    let tile_limits = grid.tile_limits(extent_to_merc(&bounds), 0);
+    let griditer = GridIterator::new(minzoom, maxzoom, tile_limits);
     for (z, x, y) in griditer {
         let res = srcaddr
             .send(GetTile { z, x, y })

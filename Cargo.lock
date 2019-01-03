@@ -326,6 +326,7 @@ dependencies = [
  "legeo 0.1.0",
  "legeo-file 0.1.0",
  "legeo-null 0.1.0",
+ "legeo-xyz 0.1.0",
  "structopt 0.2.14 (registry+https://github.com/rust-lang/crates.io-index)",
  "tokio 0.1.13 (registry+https://github.com/rust-lang/crates.io-index)",
  "url 1.7.2 (registry+https://github.com/rust-lang/crates.io-index)",

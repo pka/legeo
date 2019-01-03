@@ -11,6 +11,7 @@ path = "src/main.rs"
 
 [dependencies]
 legeo = { path = "../legeo" }
+legeo-xyz = { path = "../legeo-xyz" }
 legeo-file = { path = "../legeo-file" }
 legeo-null = { path = "../legeo-null" }
 actix = "0.7"
