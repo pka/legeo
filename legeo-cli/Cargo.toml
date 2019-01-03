@@ -5,6 +5,10 @@ authors = ["Pirmin Kalberer <pka@sourcepole.ch>"]
 edition = "2018"
 readme = "../README.md"
 
+[[bin]]
+name = "legeo"
+path = "src/main.rs"
+
 [dependencies]
 legeo = { path = "../legeo" }
 legeo-file = { path = "../legeo-file" }
@@ -13,3 +17,4 @@ actix = "0.7"
 futures = "0.1"
 tokio = "0.1.7"
 url = "1.7.2"
+structopt = "0.2.14"
