@@ -7,6 +7,7 @@
 
 use ::actix::prelude::*;
 use legeo::message::{GetTile, GetTileResult, PutTile, PutTileResult};
+use legeo::tileconnector::Tileconnector;
 use legeo::tilesink::Tilesink;
 use legeo::tilesource::Tilesource;
 use log::debug;
@@ -25,23 +26,6 @@ pub struct FileBackend {
 }
 
 impl FileBackend {
-    /// Create FileBackend with base path and format information from `uri`
-    pub fn new(uri: &str) -> Result<Self, url::ParseError> {
-        let uri = Url::parse(uri)?;
-        let basepath = uri.path().to_string();
-        let params: HashMap<_, _> = uri.query_pairs().collect();
-        let filetype = params
-            .get("filetype")
-            .unwrap_or(&Cow::from("png"))
-            .to_string();
-        let safe = params.get("safe").map_or(false, |v| v == "true");
-        Ok(FileBackend {
-            basepath,
-            filetype,
-            safe,
-        })
-    }
-
     fn get_path(&self, z: u8, x: u32, y: u32, ext: &str) -> PathBuf {
         let mut path = if self.safe {
             Path::new(&self.basepath)
@@ -58,6 +42,25 @@ impl FileBackend {
         };
         path.set_extension(ext);
         path
+    }
+}
+
+impl Tileconnector for FileBackend {
+    /// Create FileBackend with base path and format information from `uri`
+    fn load(uri: &str) -> Result<Self, url::ParseError> {
+        let uri = Url::parse(uri)?;
+        let basepath = uri.path().to_string();
+        let params: HashMap<_, _> = uri.query_pairs().collect();
+        let filetype = params
+            .get("filetype")
+            .unwrap_or(&Cow::from("png"))
+            .to_string();
+        let safe = params.get("safe").map_or(false, |v| v == "true");
+        Ok(FileBackend {
+            basepath,
+            filetype,
+            safe,
+        })
     }
 }
 
@@ -105,7 +108,7 @@ impl Handler<PutTile> for FileBackend {
 
 #[test]
 fn test_tile() {
-    let backend = FileBackend::new("file:///tmp/legeo?filetype=txt").unwrap();
+    let backend = FileBackend::load("file:///tmp/legeo?filetype=txt").unwrap();
     let tile_data = b"3/7/7";
     let _ = backend.put_tile(3, 7, 7, tile_data.to_vec());
     let mut file = File::open("/tmp/legeo/3/7/7.txt").unwrap();
@@ -119,7 +122,7 @@ fn test_tile() {
 
 #[test]
 fn test_tile_safe() {
-    let backend = FileBackend::new("file:///tmp/legeo?safe=true&filetype=txt").unwrap();
+    let backend = FileBackend::load("file:///tmp/legeo?safe=true&filetype=txt").unwrap();
     let tile_data = b"3/7/7";
     let _ = backend.put_tile(3, 7, 7, tile_data.to_vec());
     let mut file = File::open("/tmp/legeo/3/000/007/000/007.txt").unwrap();

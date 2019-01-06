@@ -7,6 +7,7 @@
 
 use ::actix::prelude::*;
 use legeo::message::{GetTile, GetTileResult};
+use legeo::tileconnector::Tileconnector;
 use legeo::tilesource::Tilesource;
 use log::error;
 use rusqlite::types::ToSql;
@@ -19,9 +20,9 @@ pub struct Mbtiles {
     conn: Connection,
 }
 
-impl Mbtiles {
+impl Tileconnector for Mbtiles {
     /// Create Mbtiles backend
-    pub fn new(uri: &str) -> Result<Self, url::ParseError> {
+    fn load(uri: &str) -> Result<Self, url::ParseError> {
         let uri = Url::parse(uri)?;
         // if (uri.hostname === '.' || uri.hostname == '..') {
         //     uri.pathname = uri.hostname + uri.pathname;

@@ -5,6 +5,8 @@
 
 //! Tilesource trait API
 
+use crate::tileconnector::Tileconnector;
+
 //  https://github.com/mapbox/tilelive/blob/master/API.md
 //
 // ```javascript
@@ -56,6 +58,6 @@
 // ```
 
 /// Map tile source
-pub trait Tilesource {
+pub trait Tilesource: Tileconnector {
     fn get_tile(&self, z: u8, x: u32, y: u32) -> std::io::Result<Vec<u8>>;
 }

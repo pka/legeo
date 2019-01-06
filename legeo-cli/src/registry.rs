@@ -8,6 +8,7 @@
 use ::actix::prelude::*;
 use legeo::message::{GetTile, PutTile};
 use legeo::operation::{TileInput as TileInputTrait, TileOutput as TileOutputTrait};
+use legeo::tileconnector::Tileconnector;
 use legeo_file::file::*;
 use legeo_mbtiles::mbtiles::*;
 use legeo_null::null::*;
@@ -31,10 +32,11 @@ impl TileInputTrait for TileInput {
     fn start_actor(&self) -> Recipient<GetTile> {
         let uri = self.uri.clone();
         let url = Url::parse(&self.uri).unwrap();
+        // TODO: Replace with a dynamic registry in legeo crate
         match url.scheme() {
-            "file" => Arbiter::start(move |_| FileBackend::new(&uri).unwrap()).recipient(),
-            "mbtiles" => Arbiter::start(move |_| Mbtiles::new(&uri).unwrap()).recipient(),
-            _ => Arbiter::start(move |_| FileBackend::new(&uri).unwrap()).recipient(),
+            "file" => Arbiter::start(move |_| FileBackend::load(&uri).unwrap()).recipient(),
+            "mbtiles" => Arbiter::start(move |_| Mbtiles::load(&uri).unwrap()).recipient(),
+            _ => Arbiter::start(move |_| FileBackend::load(&uri).unwrap()).recipient(),
         }
     }
 }
@@ -49,10 +51,11 @@ impl TileOutputTrait for TileOutput {
     fn start_actor(&self) -> Recipient<PutTile> {
         let uri = self.uri.clone();
         let url = Url::parse(&self.uri).unwrap();
+        // TODO: Replace with a dynamic registry in legeo crate
         match url.scheme() {
-            "file" => Arbiter::start(move |_| FileBackend::new(&uri).unwrap()).recipient(),
-            "null" => Arbiter::start(|_| NullSink {}).recipient(),
-            _ => Arbiter::start(|_| NullSink {}).recipient(),
+            "file" => Arbiter::start(move |_| FileBackend::load(&uri).unwrap()).recipient(),
+            "null" => Arbiter::start(move |_| NullSink::load(&uri).unwrap()).recipient(),
+            _ => Arbiter::start(move |_| NullSink::load(&uri).unwrap()).recipient(),
         }
     }
 }

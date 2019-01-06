@@ -5,6 +5,8 @@
 
 //! Tilesink trait API
 
+use crate::tileconnector::Tileconnector;
+
 //  https://github.com/mapbox/tilelive/blob/master/API.md
 //
 // ```javascript
@@ -87,7 +89,7 @@
 // };
 
 /// Map tile destination
-pub trait Tilesink {
+pub trait Tilesink: Tileconnector {
     /// Stores a tile into the data store. Parameters are in XYZ format.
     /// `tile` must contain the compressed image.
     fn put_tile(&self, z: u8, x: u32, y: u32, data: Vec<u8>) -> std::io::Result<()>;
