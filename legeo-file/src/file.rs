@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for full license information.
 //
 
-//! Reads/writes tiles and grids from/to the filesystem.
+//! Reads/writes tiles from/to the filesystem.
 
 use ::actix::prelude::*;
 use legeo::message::{GetTile, GetTileResult, PutTile, PutTileResult};
