@@ -9,6 +9,7 @@ use ::actix::prelude::*;
 use legeo::message::{GetTile, PutTile};
 use legeo::operation::{TileInput as TileInputTrait, TileOutput as TileOutputTrait};
 use legeo_file::file::*;
+use legeo_mbtiles::mbtiles::*;
 use legeo_null::null::*;
 use url::{self, Url};
 
@@ -28,8 +29,13 @@ impl TileInput {
 
 impl TileInputTrait for TileInput {
     fn start_actor(&self) -> Recipient<GetTile> {
-        let actor = FileBackend::new(&self.uri).unwrap();
-        Arbiter::start(move |_| actor).recipient()
+        let uri = self.uri.clone();
+        let url = Url::parse(&self.uri).unwrap();
+        match url.scheme() {
+            "file" => Arbiter::start(move |_| FileBackend::new(&uri).unwrap()).recipient(),
+            "mbtiles" => Arbiter::start(move |_| Mbtiles::new(&uri).unwrap()).recipient(),
+            _ => Arbiter::start(move |_| FileBackend::new(&uri).unwrap()).recipient(),
+        }
     }
 }
 

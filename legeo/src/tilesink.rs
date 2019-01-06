@@ -80,6 +80,7 @@
 // };
 // ```
 //
+// Insert a UTFGrid tile into the store. Grids are in JSON format.
 // ```javascript
 // Tilesink.prototype.putGrid = function(z, x, y, grid, callback) {
 //     // Identical to .putTile(), but grid is a JS hash containing the grid.

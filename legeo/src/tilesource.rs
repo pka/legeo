@@ -29,6 +29,7 @@
 // };
 // ```
 //
+// Get a UTFGrid tile from store
 // ```javascript
 // // z, x, y is XYZ
 // Tilesource.prototype.getGrid = function(z, x, y, callback) {

@@ -1,8 +1,9 @@
 [workspace]
 members = [
     "legeo",
-    "legeo-xyz",
-    "legeo-file",
-    "legeo-null",
     "legeo-cli",
+    "legeo-file",
+    "legeo-mbtiles",
+    "legeo-null",
+    "legeo-xyz",
 ]

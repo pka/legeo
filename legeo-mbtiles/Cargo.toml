@@ -1,0 +1,19 @@
+[package]
+name = "legeo-mbtiles"
+version = "0.1.0"
+authors = ["Pirmin Kalberer <pka@sourcepole.ch>"]
+edition = "2018"
+readme = "../README.md"
+
+[dependencies]
+legeo = { path = "../legeo" }
+actix = "0.7"
+futures = "0.1"
+tokio = "0.1.7"
+url = "1.7.2"
+log = "0.4.0"
+
+[dependencies.rusqlite]
+# https://github.com/jgallagher/rusqlite
+version = "0.15" # Same as r2d2_sqlite
+features = ["blob"]
